@@ -10,6 +10,8 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
+  bool startanimation = false;
+
   final url = "https://6604cb142ca9478ea17e83f1.mockapi.io/socialmedial/posts";
 
   var _postJson = [];
@@ -29,6 +31,10 @@ class _HomepageState extends State<Homepage> {
   void initState() {
     super.initState();
     fetchPosts();
+
+    setState(() {
+      startanimation = true;
+    });
   }
 
   void likePost(int index) {
@@ -95,6 +101,9 @@ class _HomepageState extends State<Homepage> {
 
   @override
   Widget build(BuildContext context) {
+    MediaQueryData mediaQuery = MediaQuery.of(context);
+    var screenHeight = mediaQuery.size.height;
+    var screenWidth = mediaQuery.size.width;
     return Scaffold(
         body: Column(
       children: [
@@ -142,6 +151,7 @@ class _HomepageState extends State<Homepage> {
         Expanded(
           flex: 9,
           child: ListView.builder(
+            physics: const BouncingScrollPhysics(),
             itemCount: _postJson.length,
             itemBuilder: (context, i) {
               final post = _postJson[i];
@@ -150,10 +160,14 @@ class _HomepageState extends State<Homepage> {
               final comment = post['total_comments'];
               final savedComment = _comments[i];
 
-              return Container(
+              return AnimatedContainer(
                 alignment: Alignment.center,
                 width: 100,
                 padding: EdgeInsets.only(bottom: 20),
+                curve: Curves.linear,
+                duration: Duration(milliseconds: 300 + (i * 100)),
+                transform: Matrix4.translationValues(
+                    startanimation ? 0 : screenWidth, 0, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -242,9 +256,9 @@ class _HomepageState extends State<Homepage> {
                             child: Text(
                               savedComment,
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigoAccent),
                             ),
                           ),
                         ],
