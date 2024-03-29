@@ -31,9 +31,10 @@ class _HomepageState extends State<Homepage> {
   void initState() {
     super.initState();
     fetchPosts();
-
-    setState(() {
-      startanimation = true;
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      setState(() {
+        startanimation = true;
+      });
     });
   }
 
@@ -105,171 +106,178 @@ class _HomepageState extends State<Homepage> {
     var screenHeight = mediaQuery.size.height;
     var screenWidth = mediaQuery.size.width;
     return Scaffold(
-        body: Column(
-      children: [
-        SizedBox(
-          height: 40,
-        ),
-        Expanded(
-          flex: 1,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _postJson.length,
-            itemBuilder: (context, i) {
-              final user = _postJson[i];
-              return Container(
-                width: 100,
-                alignment: Alignment.center,
-                padding: EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.grey,
-                      child: ClipOval(
-                        child: Image.network(
-                          user['avatar'].toString(),
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+        body: _postJson.isEmpty
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : Column(
+                children: [
+                  SizedBox(
+                    height: 40,
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _postJson.length,
+                      itemBuilder: (context, i) {
+                        final user = _postJson[i];
+                        return Container(
+                          width: 100,
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.grey,
+                                child: ClipOval(
+                                  child: Image.network(
+                                    user['avatar'].toString(),
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  user["name"],
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                    Expanded(
-                      child: Text(
-                        user["name"],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-        Expanded(
-          flex: 9,
-          child: ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            itemCount: _postJson.length,
-            itemBuilder: (context, i) {
-              final post = _postJson[i];
-              final bool isLiked = post['isLiked'] ?? false;
-              var likes = post['total_likes'];
-              final comment = post['total_comments'];
-              final savedComment = _comments[i];
+                  ),
+                  Expanded(
+                    flex: 9,
+                    child: ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: _postJson.length,
+                      itemBuilder: (context, i) {
+                        final post = _postJson[i];
+                        final bool isLiked = post['isLiked'] ?? false;
+                        var likes = post['total_likes'];
+                        final comment = post['total_comments'];
+                        final savedComment = _comments[i];
 
-              return AnimatedContainer(
-                alignment: Alignment.center,
-                width: 100,
-                padding: EdgeInsets.only(bottom: 20),
-                curve: Curves.linear,
-                duration: Duration(milliseconds: 300 + (i * 100)),
-                transform: Matrix4.translationValues(
-                    startanimation ? 0 : screenWidth, 0, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Stack(children: [
-                      Image.network(post['post_url'].toString()),
-                      Positioned(
-                        top: 10,
-                        left: 10,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.grey,
-                              backgroundImage:
-                                  NetworkImage(post['avatar'].toString()),
-                              radius: 20,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              post['name'].toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ]),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
+                        return AnimatedContainer(
+                          alignment: Alignment.center,
+                          width: 100,
+                          padding: EdgeInsets.only(bottom: 20),
+                          curve: Curves.fastLinearToSlowEaseIn,
+                          duration: Duration(milliseconds: 300 + (i * 100)),
+                          transform: Matrix4.translationValues(
+                              startanimation ? 0 : screenWidth, 0, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              IconButton(
-                                icon: isLiked
-                                    ? Icon(
-                                        Icons.thumb_up_alt,
-                                        color: Colors.orange,
-                                      )
-                                    : Icon(Icons.thumb_up_alt_outlined),
-                                onPressed: () {
-                                  likePost(i);
-                                },
-                              ),
-                              Text(
-                                '$likes Likes',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                              Stack(children: [
+                                Image.network(post['post_url'].toString()),
+                                Positioned(
+                                  top: 10,
+                                  left: 10,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundColor: Colors.grey,
+                                        backgroundImage: NetworkImage(
+                                            post['avatar'].toString()),
+                                        radius: 20,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        post['name'].toString(),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ]),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: isLiked
+                                              ? Icon(
+                                                  Icons.thumb_up_alt,
+                                                  color: Colors.orange,
+                                                )
+                                              : Icon(
+                                                  Icons.thumb_up_alt_outlined),
+                                          onPressed: () {
+                                            likePost(i);
+                                          },
+                                        ),
+                                        Text(
+                                          '$likes Likes',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.comment),
+                                          onPressed: () {
+                                            openCommentModal(context, i);
+                                          },
+                                        ),
+                                        Text(
+                                          '$comment Comments',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.comment),
-                                onPressed: () {
-                                  openCommentModal(context, i);
-                                },
-                              ),
-                              Text(
-                                '$comment Comments',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                              if (savedComment != null)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        savedComment,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
                             ],
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                    if (savedComment != null)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              savedComment,
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigoAccent),
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    ));
+                  ),
+                ],
+              ));
   }
 }
